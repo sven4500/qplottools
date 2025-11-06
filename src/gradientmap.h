@@ -460,11 +460,6 @@ template<typename ty>
 void GradientMap<ty>::mousePressEvent(QMouseEvent* event)
 {
     Axes2D::mousePressEvent(event);
-
-    if(event->button() == Qt::LeftButton)
-    {
-        emit pointSelected(event->pos().x(), event->pos().y());
-    }
 }
 
 template<typename ty>

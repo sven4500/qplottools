@@ -1,14 +1,16 @@
-#include <QGridLayout>
-#include <QTimer>
+#include <cstdlib> // rand, srand, ...
+#include <ctime> // time, ...
+
 #include <QColor>
+#include <QGridLayout>
 #include <QKeyEvent>
-#include <cstdlib> // rand, srand
-#include <ctime> // time
-#include <window.h>
+#include <QTimer>
+
+#include "widget.h"
 
 int const rowCount = 10, columnCount = 10;
 
-CustomWidget::CustomWidget(QWidget* parent):
+Widget::Widget(QWidget* parent):
     QWidget(parent), _frames(0)
 {
     // Create GradientMap widget with this parent. GradientMap is template and
@@ -27,7 +29,7 @@ CustomWidget::CustomWidget(QWidget* parent):
     _gmap->setMax(RAND_MAX);
 
     // Signal pointSelected fires whenever user clicks on GradientMap contents.
-    connect(_gmap, &GradientMap<int>::pointSelected, this, &CustomWidget::catchPoint);
+    connect(_gmap, &GradientMap<int>::pixelClicked, this, &Widget::catchPoint);
 
 //    double* const addr = new double[4];
 //    addr[0] = 0.25;
@@ -73,7 +75,7 @@ CustomWidget::CustomWidget(QWidget* parent):
 
     // Create timer to measure frames per second.
     _timer = new QTimer(this);
-    connect(_timer, &QTimer::timeout, this, &CustomWidget::updateFps);
+    connect(_timer, &QTimer::timeout, this, &Widget::updateFps);
 
     _timer->start(1000);
 
@@ -90,19 +92,19 @@ CustomWidget::CustomWidget(QWidget* parent):
     resize(640, 480);
 }
 
-CustomWidget::~CustomWidget()
+Widget::~Widget()
 {
     for(auto line : _ivect)
         delete[] line;
 }
 
-void CustomWidget::catchPoint(int x, int y)
+void Widget::catchPoint(int x, int y)
 {
     QString const text = QString("x = %1, y = %2").arg(x).arg(y);
     _pointLabel->setText(text);
 }
 
-void CustomWidget::updateFps()
+void Widget::updateFps()
 {
     // This method fires each 1 second. Simply print out number of frames drew
     // so far and start counting over.
@@ -112,7 +114,7 @@ void CustomWidget::updateFps()
     _frames = 0;
 }
 
-void CustomWidget::keyPressEvent(QKeyEvent* event)
+void Widget::keyPressEvent(QKeyEvent* event)
 {
     if(event->key() != Qt::Key_F5)
         return;

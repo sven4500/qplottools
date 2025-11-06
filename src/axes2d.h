@@ -1,20 +1,22 @@
 #pragma once
-#ifndef AXES2D_H
-#define AXES2D_H
+#ifndef QPLOTTOOLS_AXES2D_H_
+#define QPLOTTOOLS_AXES2D_H_
 
-#include <cmath> // floot
+#include <cmath> // floor, pow, abs, ...
+
+#include <QMouseEvent>
 #include <QPoint>
 #include <QPointF>
 #include <QRect>
-#include <QMouseEvent>
-#include <abstractpainter.h>
+
+#include "abstractpainter.h"
 
 class Axes2D: public AbstractPainter
 {
     Q_OBJECT
 
 signals:
-    void pointSelected(int x, int y);
+    void pixelClicked(int x, int y);
 
 public:
     Axes2D(QWidget* parent = nullptr)
@@ -127,9 +129,10 @@ protected:
 
             makeNiceStep();
             update();
+
+            emit pixelClicked(event->pos().x(), event->pos().y());
         }
-        else
-        if(event->button() == Qt::RightButton)
+        else if(event->button() == Qt::RightButton)
         {
             unsetCursor();
             update();

@@ -6,13 +6,13 @@
 #include <vector>
 #include <gradientmap.h>
 
-class CustomWidget: public QWidget
+class Widget: public QWidget
 {
     Q_OBJECT
 
 public:
-    CustomWidget(QWidget* parent = nullptr);
-    virtual ~CustomWidget();
+    Widget(QWidget* parent = nullptr);
+    virtual ~Widget();
 
 private slots:
     void updateFps();
