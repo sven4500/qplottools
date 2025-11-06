@@ -2,94 +2,117 @@
 #ifndef ABSTRACTPAINTER_H
 #define ABSTRACTPAINTER_H
 
-#include <QWidget>
-#include <QVector>
 #include <QPainter>
+#include <QVector>
+#include <QWidget>
 
-// Класс AbstractPainter реализует примитивную очередь отрисовки. Дети этого
-// класса не должны переопределять метод paintEvent иначе цикл перерисовки не
-// будет запущен. Дети этого класса могут добавить в очередь отрисовки свои
-// методы посредством вызова addToRenderQueue. При этом указатель метода
-// отрисовки нужно привести к типу PaintFunc.
+/*!
+ * \brief The AbstractPainter class implements painter queue. Children should
+ * not override paintEvent and should add painting stages to queue by calling
+ * addToPaintQueue instead.
+ */
 class AbstractPainter: public QWidget
 {
     Q_OBJECT
 
 public:
-    void stopRender()
+    /*!
+     * \brief Stops painter queue by setting skip flag to true.
+     */
+    void stopPainter()
     {
-        _renderOut = false;
+        m_skipPainter = true;
     }
 
-    void resumeRender()
+    /*!
+     * \brief Resumes painter queue by setting skip flag to false.
+     */
+    void resumePainter()
     {
-        _renderOut = true;
+        m_skipPainter = false;
         update();
     }
 
 protected:
     typedef void (AbstractPainter::*PaintFunc)(QPainter& painter);
 
-    AbstractPainter(QWidget* parent = nullptr):
-        QWidget(parent), _renderOut(true)
+    /*!
+     * \brief Builds default AbstractPainter class.
+     * \param parent widgets parent.
+     */
+    AbstractPainter(QWidget* parent = nullptr)
+        : QWidget(parent)
     {
-        QPalette pal = palette();
+        auto pal = palette();
         pal.setColor(QPalette::Window, Qt::white);
 
         setPalette(pal);
     }
 
-    virtual ~AbstractPainter()
-    {
-
-    }
-
-    virtual void paintEvent(QPaintEvent* event)
+    /*!
+     * \brief Runs painter queue by calling consequently each PaintFunc in
+     * queue.
+     * \param event unused QPaintEvent argument.
+     */
+    virtual void paintEvent(QPaintEvent* event) final
     {
         Q_UNUSED(event);
 
-        if(_renderOut)
+        if(m_skipPainter)
+            return;
+
+        QPainter painter(this);
+
+        paintBackground(painter);
+
+        if(contentsRect().isValid())
         {
-            QPainter painter(this);
-
-            paintBackground(painter);
-
-            if(contentsRect().isValid())
+            for(auto paintFunc : m_paintQueue)
             {
-                for(auto paintFunc : _renderQueue)
-                {
-                    painter.save();
-                    (this->*paintFunc)(painter);
-                    painter.restore();
-                }
+                painter.save();
+                (this->*paintFunc)(painter);
+                painter.restore();
             }
         }
     }
 
-    void addToRenderQueue(PaintFunc func)
+    /*!
+     * \brief Adds PaintFunc to queue. This function is called by children to
+     * build a painter queue.
+     * \param func painter stage function.
+     */
+    void addToPaintQueue(PaintFunc func)
     {
-        _renderQueue.append(func);
+        m_paintQueue.append(func);
     }
 
-    void removeFromRenderQueue(PaintFunc func)
+    /*!
+     * \brief Removes all ocurences of painter function from queue.
+     * \param func painter stage function to remove.
+     */
+    void removeFromPaintQueue(PaintFunc func)
     {
-        _renderQueue.removeAll(func);
+        m_paintQueue.removeAll(func);
     }
 
-    void clearRenderQueue()
+    /*!
+     * \brief Clears painter queue.
+     */
+    void clearPaintQueue()
     {
-        _renderQueue.clear();
+        m_paintQueue.clear();
         //update();
     }
 
     void paintBackground(QPainter& painter)
     {
+        // todo: add customizable background color
         painter.fillRect(0, 0, width(), height(), palette().window());
     }
 
 private:
-    QVector<PaintFunc> _renderQueue;
-    bool _renderOut;
+    QVector<PaintFunc> m_paintQueue;
+    bool m_skipPainter = false;
 
 };
 

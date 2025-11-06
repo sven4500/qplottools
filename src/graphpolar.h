@@ -45,7 +45,7 @@ template<typename ty>
 GraphPolar<ty>::GraphPolar(QWidget* parent):
     AxesPolar(parent)
 {
-    addToRenderQueue(reinterpret_cast<PaintFunc>(&drawCurves));
+    addToPaintQueue(reinterpret_cast<PaintFunc>(&drawCurves));
 }
 
 template<typename ty>

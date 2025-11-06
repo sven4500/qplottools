@@ -33,7 +33,7 @@ template<typename ty>
 VoronoiDiagram<ty>::VoronoiDiagram(QWidget* parent):
     Axes2D(parent)
 {
-    addToRenderQueue(reinterpret_cast<PaintFunc>(&drawPoints));
+    addToPaintQueue(reinterpret_cast<PaintFunc>(&drawPoints));
 }
 
 template<typename ty>

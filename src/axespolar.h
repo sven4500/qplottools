@@ -10,7 +10,7 @@ class AxesPolar: public AbstractPainter
     Q_OBJECT
 
 signals:
-    pointSelected(int x, int y);
+    void pointSelected(int x, int y);
 
 protected:
     struct ViewRegionPolar
@@ -57,7 +57,7 @@ protected:
 
         // todo: add some space for tick labels (use QFontMetrics)
         setContentsMargins(10, 10, 10, 10);
-        addToRenderQueue(reinterpret_cast<PaintFunc>(&drawGrid));
+        addToPaintQueue(reinterpret_cast<PaintFunc>(&drawGrid));
     }
 
     virtual ~AxesPolar()

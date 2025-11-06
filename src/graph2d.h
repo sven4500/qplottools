@@ -76,9 +76,9 @@ Graph2D<ty>::Graph2D(QWidget* parent):
 
     setContentsMargins(contentsLeft, contentsTop, contentsRight, contentsBottom);
 
-    addToRenderQueue(reinterpret_cast<PaintFunc>(&drawGrid));
-    addToRenderQueue(reinterpret_cast<PaintFunc>(&drawCurves));
-    addToRenderQueue(reinterpret_cast<PaintFunc>(&drawRubberband));
+    addToPaintQueue(reinterpret_cast<PaintFunc>(&Graph2D<ty>::drawGrid));
+    addToPaintQueue(reinterpret_cast<PaintFunc>(&Graph2D<ty>::drawCurves));
+    addToPaintQueue(reinterpret_cast<PaintFunc>(&Graph2D<ty>::drawRubberband));
 }
 
 template<typename ty>
@@ -216,12 +216,12 @@ void Graph2D<ty>::drawGrid(QPainter& painter)
     QPen darkPen(Qt::black, 1, Qt::SolidLine);
     QPen lightPen(Qt::gray, 1, Qt::DashLine);
 
-    double x = std::floor(_viewRegion._minX / _stepX) * _stepX;
+    double x = std::floor(m_viewRegion._minX / m_stepX) * m_stepX;
     double y = 0.0;
 
-    for(int i = 0; i < _numTicks; ++i)
+    for(int i = 0; i < m_numTicks; ++i)
     {
-        x += _stepX;
+        x += m_stepX;
 
         QPoint const pixel = toPixel(QPointF(x, y));
 
@@ -231,7 +231,7 @@ void Graph2D<ty>::drawGrid(QPainter& painter)
         if(true)
         {
             QString const number = QString::number(x);
-            int const lineWidth = _metrics.width(number);
+            int const lineWidth = _metrics.horizontalAdvance(number);
 
             QRect const rect = {
                 pixel.x() - lineWidth / 2,
@@ -246,11 +246,11 @@ void Graph2D<ty>::drawGrid(QPainter& painter)
     }
 
     x = 0.0;
-    y = std::floor(_viewRegion._minY / _stepY) * _stepY;
+    y = std::floor(m_viewRegion._minY / m_stepY) * m_stepY;
 
-    for(int i = 0; i < _numTicks; ++i)
+    for(int i = 0; i < m_numTicks; ++i)
     {
-        y += _stepY;
+        y += m_stepY;
 
         QPoint const pixel = toPixel(QPointF(x, y));
 
@@ -260,7 +260,7 @@ void Graph2D<ty>::drawGrid(QPainter& painter)
         if(true)
         {
             QString const number = QString::number(y);
-            int const lineWidth = _metrics.width(number);
+            int const lineWidth = _metrics.horizontalAdvance(number);
 
             QRect const rect {
                 contentsRect().left() - lineWidth - _metrics.averageCharWidth(),

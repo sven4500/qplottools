@@ -2,6 +2,7 @@
 #ifndef AXES2D_H
 #define AXES2D_H
 
+#include <cmath> // floot
 #include <QPoint>
 #include <QPointF>
 #include <QRect>
@@ -16,8 +17,9 @@ signals:
     void pointSelected(int x, int y);
 
 public:
-    Axes2D(QWidget* parent = nullptr):
-        AbstractPainter(parent), _numTicks(10)
+    Axes2D(QWidget* parent = nullptr)
+        : AbstractPainter(parent)
+        , m_numTicks(10)
     {
         makeNiceStep();
         setMouseTracking(true);
@@ -30,8 +32,7 @@ public:
 
     static double niceNumber(double number, bool round)
     {
-        // Graphic Gems Vol.1 p.62
-
+        // note: Graphic Gems Vol.1 p.62
         int exp = std::floor(std::log10(number));
         double f = number / std::pow(10.0, exp);
         double nf;
@@ -40,11 +41,9 @@ public:
         {
             if(f < 1.5)
                 nf = 1.0;
-            else
-            if(f < 3.0)
+            else if(f < 3.0)
                 nf = 2.0;
-            else
-            if(f < 7.0)
+            else if(f < 7.0)
                 nf = 5.0;
             else
                 nf = 10.0;
@@ -53,11 +52,9 @@ public:
         {
             if(f <= 1.0)
                 nf = 1.0;
-            else
-            if(f <= 2.0)
+            else if(f <= 2.0)
                 nf = 2.0;
-            else
-            if(f <= 5.0)
+            else if(f <= 5.0)
                 nf = 5.0;
             else
                 nf = 10.0;
@@ -98,14 +95,14 @@ protected:
         if(event->button() == Qt::LeftButton)
         {
             setCursor(Qt::CrossCursor);
-            _rubberband.setTopLeft(event->pos());
-            _rubberband.setBottomRight(event->pos());
+            m_rubberband.setTopLeft(event->pos());
+            m_rubberband.setBottomRight(event->pos());
         }
         else
         if(event->button() == Qt::RightButton)
         {
             setCursor(Qt::ClosedHandCursor);
-            _dragPoint = toPoint(event->pos());
+            m_dragPoint = toPoint(event->pos());
         }
     }
 
@@ -115,18 +112,18 @@ protected:
         {
             unsetCursor();
 
-            QPointF const topLeft = toPoint(_rubberband.topLeft());
-            QPointF const bottomRight = toPoint(_rubberband.bottomRight());
+            QPointF const topLeft = toPoint(m_rubberband.topLeft());
+            QPointF const bottomRight = toPoint(m_rubberband.bottomRight());
 
-            _viewRegion._minX = std::min(topLeft.x(), bottomRight.x());
-            _viewRegion._maxX = std::max(topLeft.x(), bottomRight.x());
+            m_viewRegion._minX = std::min(topLeft.x(), bottomRight.x());
+            m_viewRegion._maxX = std::max(topLeft.x(), bottomRight.x());
 
-            _viewRegion._minY = std::min(topLeft.y(), bottomRight.y());
-            _viewRegion._maxY = std::max(topLeft.y(), bottomRight.y());
+            m_viewRegion._minY = std::min(topLeft.y(), bottomRight.y());
+            m_viewRegion._maxY = std::max(topLeft.y(), bottomRight.y());
 
             // Выделяющий прямоугольник больше не будет отрисован.
-            _rubberband.setTopLeft(event->pos());
-            _rubberband.setBottomRight(event->pos());
+            m_rubberband.setTopLeft(event->pos());
+            m_rubberband.setBottomRight(event->pos());
 
             makeNiceStep();
             update();
@@ -145,7 +142,7 @@ protected:
         {
             if(contentsRect().adjusted(-1, -1, -1, -1).contains(event->pos()))
             {
-                _rubberband.setBottomRight(event->pos());
+                m_rubberband.setBottomRight(event->pos());
             }
 
             update();
@@ -153,18 +150,18 @@ protected:
         else
         if(event->buttons() == Qt::RightButton)
         {
-            QPointF const distance = toPoint(event->pos()) - _dragPoint;
+            QPointF const distance = toPoint(event->pos()) - m_dragPoint;
 
             if((event->modifiers() & Qt::ShiftModifier) == 0)
             {
-                _viewRegion._minX -= distance.x();
-                _viewRegion._maxX -= distance.x();
+                m_viewRegion._minX -= distance.x();
+                m_viewRegion._maxX -= distance.x();
             }
 
             if((event->modifiers() & Qt::ControlModifier) == 0)
             {
-                _viewRegion._minY -= distance.y();
-                _viewRegion._maxY -= distance.y();
+                m_viewRegion._minY -= distance.y();
+                m_viewRegion._maxY -= distance.y();
             }
 
             update();
@@ -184,24 +181,24 @@ protected:
 
             if((event->modifiers() & Qt::ShiftModifier) == 0)
             {
-                double const deltaSpanX = _viewRegion.spanX() - _viewRegion.spanX() * factor;
+                double const deltaSpanX = m_viewRegion.spanX() - m_viewRegion.spanX() * factor;
 
-                double const x1 = (point.x() - _viewRegion._minX) / _viewRegion.spanX();
+                double const x1 = (point.x() - m_viewRegion._minX) / m_viewRegion.spanX();
                 double const x2 = 1.0 - x1;
 
-                _viewRegion._minX += deltaSpanX * x1;
-                _viewRegion._maxX -= deltaSpanX * x2;
+                m_viewRegion._minX += deltaSpanX * x1;
+                m_viewRegion._maxX -= deltaSpanX * x2;
             }
 
             if((event->modifiers() & Qt::ControlModifier) == 0)
             {
-                double const deltaSpanY = _viewRegion.spanY() - _viewRegion.spanY() * factor;
+                double const deltaSpanY = m_viewRegion.spanY() - m_viewRegion.spanY() * factor;
 
-                double const y1 = (point.y() - _viewRegion._minY) / _viewRegion.spanY();
+                double const y1 = (point.y() - m_viewRegion._minY) / m_viewRegion.spanY();
                 double const y2 = 1.0 - y1;
 
-                _viewRegion._minY += deltaSpanY * y1;
-                _viewRegion._maxY -= deltaSpanY * y2;
+                m_viewRegion._minY += deltaSpanY * y1;
+                m_viewRegion._maxY -= deltaSpanY * y2;
             }
 
             makeNiceStep();
@@ -211,30 +208,30 @@ protected:
 
     double minX()const
     {
-        return _viewRegion._minX;
+        return m_viewRegion._minX;
     }
 
     double maxX()const
     {
-        return _viewRegion._maxX;
+        return m_viewRegion._maxX;
     }
 
     double minY()const
     {
-        return _viewRegion._minY;
+        return m_viewRegion._minY;
     }
 
     double maxY()const
     {
-        return _viewRegion._maxY;
+        return m_viewRegion._maxY;
     }
 
     void setLimX(double min, double max)
     {
         if(max > min)
         {
-            _viewRegion._minX = min;
-            _viewRegion._maxX = max;
+            m_viewRegion._minX = min;
+            m_viewRegion._maxX = max;
         }
     }
 
@@ -242,18 +239,18 @@ protected:
     {
         if(max > min)
         {
-            _viewRegion._minY = min;
-            _viewRegion._maxY = max;
+            m_viewRegion._minY = min;
+            m_viewRegion._maxY = max;
         }
     }
 
     void drawRubberband(QPainter& painter)
     {
-        if(std::abs(_rubberband.width()) > 4 && std::abs(_rubberband.height()) > 4)
+        if(std::abs(m_rubberband.width()) > 4 && std::abs(m_rubberband.height()) > 4)
         {
             painter.setCompositionMode(QPainter::RasterOp_SourceXorDestination);
             painter.setPen(Qt::white);
-            painter.drawRect(_rubberband);
+            painter.drawRect(m_rubberband);
         }
     }
 
@@ -261,11 +258,11 @@ protected:
     {
         QRect const& rect = contentsRect();
 
-        double const kX = _viewRegion.spanX() / rect.width();
-        double const kY = _viewRegion.spanY() / rect.height();
+        double const kX = m_viewRegion.spanX() / rect.width();
+        double const kY = m_viewRegion.spanY() / rect.height();
 
-        int const x = rect.left() + int((point.x() - _viewRegion._minX) / kX);
-        int const y = rect.bottom() - int((point.y() - _viewRegion._minY) / kY);
+        int const x = rect.left() + int((point.x() - m_viewRegion._minX) / kX);
+        int const y = rect.bottom() - int((point.y() - m_viewRegion._minY) / kY);
 
         return QPoint(x, y);
     }
@@ -274,35 +271,35 @@ protected:
     {
         QRect const& rect = contentsRect();
 
-        double const kX = _viewRegion.spanX() / rect.width();
-        double const kY = _viewRegion.spanY() / rect.height();
+        double const kX = m_viewRegion.spanX() / rect.width();
+        double const kY = m_viewRegion.spanY() / rect.height();
 
-        double const x = (pixel.x() - rect.left()) * kX + _viewRegion._minX;
-        double const y = (rect.bottom() - pixel.y()) * kY + _viewRegion._minY;
+        double const x = (pixel.x() - rect.left()) * kX + m_viewRegion._minX;
+        double const y = (rect.bottom() - pixel.y()) * kY + m_viewRegion._minY;
 
         return QPointF(x, y);
     }
 
-    ViewRegion2D _viewRegion;
+    ViewRegion2D m_viewRegion;
 
-    double _stepX;
-    double _stepY;
+    double m_stepX;
+    double m_stepY;
 
-    int _numTicks;
+    int m_numTicks;
 
 private:
     void makeNiceStep()
     {
-        double const rangeX = niceNumber(_viewRegion.spanX(), false);
-        double const rangeY = niceNumber(_viewRegion.spanY(), false);
+        double const rangeX = niceNumber(m_viewRegion.spanX(), false);
+        double const rangeY = niceNumber(m_viewRegion.spanY(), false);
 
-        _stepX = niceNumber(rangeX / (_numTicks - 1), true);
-        _stepY = niceNumber(rangeY / (_numTicks - 1), true);
+        m_stepX = niceNumber(rangeX / (m_numTicks - 1), true);
+        m_stepY = niceNumber(rangeY / (m_numTicks - 1), true);
     }
 
-    QRect _rubberband;
+    QRect m_rubberband;
 
-    QPointF _dragPoint;
+    QPointF m_dragPoint;
 
 };
 

@@ -1,18 +1,21 @@
 #pragma once
-#ifndef GRADIENTMAP_H
-#define GRADIENTMAP_H
+#ifndef QPLOTTOOLS_GRADIENTMAP_H_
+#define QPLOTTOOLS_GRADIENTMAP_H_
 
+#include <QImage>
+#include <QMap>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QWidget>
-#include <QImage>
 #include <QSize>
-#include <QMap>
-#include <axes2d.h>
+#include <QWidget>
 
-// GradientMap должен быть шаблоном, однако Qt не поддерживает шаблонные
-// классы, неследованные напрямую от QWidget. Это связано с определёнными
-// ограничениями репроцессора moc.
+#include "axes2d.h"
+
+/*!
+ * \brief GradientMap had to be a template class but unfortunately Qt5 doesn't
+ * support Q_OBJECT with template classes. Is this issue somehow related to the
+ * MOC preprocessor restrictions?
+ */
 template<typename ty>
 class GradientMap: public Axes2D
 {
@@ -137,8 +140,8 @@ template<typename ty>
 GradientMap<ty>::GradientMap(QWidget* parent):
     Axes2D(parent)
 {
-    addToRenderQueue(reinterpret_cast<PaintFunc>(&GradientMap::drawImage));
-    addToRenderQueue(reinterpret_cast<PaintFunc>(&GradientMap::drawRubberband));
+    addToPaintQueue(reinterpret_cast<PaintFunc>(&GradientMap::drawImage));
+    addToPaintQueue(reinterpret_cast<PaintFunc>(&GradientMap::drawRubberband));
 
     setContentsMargins(10, 10, 10, 10);
 
@@ -199,8 +202,8 @@ void GradientMap<ty>::setHorizontalResolution(float resolutionX)
 {
     if(resolutionX > 0.0)
     {
-        _viewRegion._minX = 0.0;
-        _viewRegion._maxX = resolutionX;
+        m_viewRegion._minX = 0.0;
+        m_viewRegion._maxX = resolutionX;
     }
 }
 
@@ -210,8 +213,8 @@ void GradientMap<ty>::setVerticalResolution(float resolutionY)
     if(resolutionY > 0.0)
     {
         // Карта сторится сверху вниз, поэтому ось Y инвертирована.
-        _viewRegion._minY = -resolutionY;
-        _viewRegion._maxY = 0.0;
+        m_viewRegion._minY = -resolutionY;
+        m_viewRegion._maxY = 0.0;
     }
 }
 
@@ -384,8 +387,8 @@ void GradientMap<ty>::updateGradientImage()
     double const cordX = toPixel(QPointF(0.0, 0.0)).x() - contentsRect().x();
     double const cordY = toPixel(QPointF(0.0, 0.0)).y() - contentsRect().y();
 
-    double const horzRes = _viewRegion.spanX();
-    double const vertRes = _viewRegion.spanY();
+    double const horzRes = m_viewRegion.spanX();
+    double const vertRes = m_viewRegion.spanY();
 
     // Фактор задаёт количество пикселей на один узел (плотность точек).
     double const factorX = width / horzRes;

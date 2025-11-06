@@ -8,8 +8,8 @@ TEMPLATE = app
 include(../defs.pri)
 
 SOURCES += \
-    main.cpp
+    main.cpp \
+    widget.cpp \
 
 HEADERS += \
-    mainwidget.h
-
+    widget.h \
