@@ -10,6 +10,7 @@
 #include <QRect>
 
 #include "abstractpainter.h"
+#include "viewregion2d.h"
 
 class Axes2D: public AbstractPainter
 {
@@ -27,9 +28,32 @@ public:
         setMouseTracking(true);
     }
 
-    virtual ~Axes2D()
+    bool setLimX(double min, double max)
     {
+        if(max <= min)
+            return false;
 
+        m_viewRegion.minX = min;
+        m_viewRegion.maxX = max;
+
+        makeNiceStep();
+        update();
+
+        return true;
+    }
+
+    bool setLimY(double min, double max)
+    {
+        if(max <= min)
+            return false;
+
+        m_viewRegion.minY = min;
+        m_viewRegion.maxY = max;
+
+        makeNiceStep();
+        update();
+
+        return true;
     }
 
     static double niceNumber(double number, bool round)
@@ -66,32 +90,6 @@ public:
     }
 
 protected:
-    struct ViewRegion2D
-    {
-        ViewRegion2D():
-            _minX(0.0), _maxX(1.0), _minY(0.0), _maxY(1.0)
-        {
-
-        }
-
-        double spanX()const
-        {
-            return std::abs(_maxX - _minX);
-        }
-
-        double spanY()const
-        {
-            return std::abs(_maxY - _minY);
-        }
-
-        double _minX;
-        double _maxX;
-
-        double _minY;
-        double _maxY;
-
-    };
-
     virtual void mousePressEvent(QMouseEvent* event)
     {
         if(event->button() == Qt::LeftButton)
@@ -117,11 +115,11 @@ protected:
             QPointF const topLeft = toPoint(m_rubberband.topLeft());
             QPointF const bottomRight = toPoint(m_rubberband.bottomRight());
 
-            m_viewRegion._minX = std::min(topLeft.x(), bottomRight.x());
-            m_viewRegion._maxX = std::max(topLeft.x(), bottomRight.x());
+            m_viewRegion.minX = std::min(topLeft.x(), bottomRight.x());
+            m_viewRegion.maxX = std::max(topLeft.x(), bottomRight.x());
 
-            m_viewRegion._minY = std::min(topLeft.y(), bottomRight.y());
-            m_viewRegion._maxY = std::max(topLeft.y(), bottomRight.y());
+            m_viewRegion.minY = std::min(topLeft.y(), bottomRight.y());
+            m_viewRegion.maxY = std::max(topLeft.y(), bottomRight.y());
 
             // Выделяющий прямоугольник больше не будет отрисован.
             m_rubberband.setTopLeft(event->pos());
@@ -157,14 +155,14 @@ protected:
 
             if((event->modifiers() & Qt::ShiftModifier) == 0)
             {
-                m_viewRegion._minX -= distance.x();
-                m_viewRegion._maxX -= distance.x();
+                m_viewRegion.minX -= distance.x();
+                m_viewRegion.maxX -= distance.x();
             }
 
             if((event->modifiers() & Qt::ControlModifier) == 0)
             {
-                m_viewRegion._minY -= distance.y();
-                m_viewRegion._maxY -= distance.y();
+                m_viewRegion.minY -= distance.y();
+                m_viewRegion.maxY -= distance.y();
             }
 
             update();
@@ -177,7 +175,7 @@ protected:
         {
             QPointF const point = toPoint(event->pos());
 
-            // angleDelta возвращает 1/8 долей градуса.
+            // note: angleDelta returns 1/8 of a degree
             auto const angle = event->angleDelta().y() / 8;
 
             double const factor = std::abs(angle > 0.0 ? angle / 30.0 : angle / 10.0);
@@ -186,22 +184,22 @@ protected:
             {
                 double const deltaSpanX = m_viewRegion.spanX() - m_viewRegion.spanX() * factor;
 
-                double const x1 = (point.x() - m_viewRegion._minX) / m_viewRegion.spanX();
+                double const x1 = (point.x() - m_viewRegion.minX) / m_viewRegion.spanX();
                 double const x2 = 1.0 - x1;
 
-                m_viewRegion._minX += deltaSpanX * x1;
-                m_viewRegion._maxX -= deltaSpanX * x2;
+                m_viewRegion.minX += deltaSpanX * x1;
+                m_viewRegion.maxX -= deltaSpanX * x2;
             }
 
             if((event->modifiers() & Qt::ControlModifier) == 0)
             {
                 double const deltaSpanY = m_viewRegion.spanY() - m_viewRegion.spanY() * factor;
 
-                double const y1 = (point.y() - m_viewRegion._minY) / m_viewRegion.spanY();
+                double const y1 = (point.y() - m_viewRegion.minY) / m_viewRegion.spanY();
                 double const y2 = 1.0 - y1;
 
-                m_viewRegion._minY += deltaSpanY * y1;
-                m_viewRegion._maxY -= deltaSpanY * y2;
+                m_viewRegion.minY += deltaSpanY * y1;
+                m_viewRegion.maxY -= deltaSpanY * y2;
             }
 
             makeNiceStep();
@@ -211,40 +209,22 @@ protected:
 
     double minX()const
     {
-        return m_viewRegion._minX;
+        return m_viewRegion.minX;
     }
 
     double maxX()const
     {
-        return m_viewRegion._maxX;
+        return m_viewRegion.maxX;
     }
 
     double minY()const
     {
-        return m_viewRegion._minY;
+        return m_viewRegion.minY;
     }
 
     double maxY()const
     {
-        return m_viewRegion._maxY;
-    }
-
-    void setLimX(double min, double max)
-    {
-        if(max > min)
-        {
-            m_viewRegion._minX = min;
-            m_viewRegion._maxX = max;
-        }
-    }
-
-    void setLimY(double min, double max)
-    {
-        if(max > min)
-        {
-            m_viewRegion._minY = min;
-            m_viewRegion._maxY = max;
-        }
+        return m_viewRegion.maxY;
     }
 
     void drawRubberband(QPainter& painter)
@@ -264,8 +244,8 @@ protected:
         double const kX = m_viewRegion.spanX() / rect.width();
         double const kY = m_viewRegion.spanY() / rect.height();
 
-        int const x = rect.left() + int((point.x() - m_viewRegion._minX) / kX);
-        int const y = rect.bottom() - int((point.y() - m_viewRegion._minY) / kY);
+        int const x = rect.left() + int((point.x() - m_viewRegion.minX) / kX);
+        int const y = rect.bottom() - int((point.y() - m_viewRegion.minY) / kY);
 
         return QPoint(x, y);
     }
@@ -277,8 +257,8 @@ protected:
         double const kX = m_viewRegion.spanX() / rect.width();
         double const kY = m_viewRegion.spanY() / rect.height();
 
-        double const x = (pixel.x() - rect.left()) * kX + m_viewRegion._minX;
-        double const y = (rect.bottom() - pixel.y()) * kY + m_viewRegion._minY;
+        double const x = (pixel.x() - rect.left()) * kX + m_viewRegion.minX;
+        double const y = (rect.bottom() - pixel.y()) * kY + m_viewRegion.minY;
 
         return QPointF(x, y);
     }

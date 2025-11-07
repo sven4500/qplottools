@@ -202,8 +202,8 @@ void GradientMap<ty>::setHorizontalResolution(float resolutionX)
 {
     if(resolutionX > 0.0)
     {
-        m_viewRegion._minX = 0.0;
-        m_viewRegion._maxX = resolutionX;
+        m_viewRegion.minX = 0.0;
+        m_viewRegion.maxX = resolutionX;
     }
 }
 
@@ -213,8 +213,8 @@ void GradientMap<ty>::setVerticalResolution(float resolutionY)
     if(resolutionY > 0.0)
     {
         // Карта сторится сверху вниз, поэтому ось Y инвертирована.
-        m_viewRegion._minY = -resolutionY;
-        m_viewRegion._maxY = 0.0;
+        m_viewRegion.minY = -resolutionY;
+        m_viewRegion.maxY = 0.0;
     }
 }
 

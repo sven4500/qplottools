@@ -216,7 +216,7 @@ void Graph2D<ty>::drawGrid(QPainter& painter)
     QPen darkPen(Qt::black, 1, Qt::SolidLine);
     QPen lightPen(Qt::gray, 1, Qt::DashLine);
 
-    double x = std::floor(m_viewRegion._minX / m_stepX) * m_stepX;
+    double x = std::floor(m_viewRegion.minX / m_stepX) * m_stepX;
     double y = 0.0;
 
     for(int i = 0; i < m_numTicks; ++i)
@@ -246,7 +246,7 @@ void Graph2D<ty>::drawGrid(QPainter& painter)
     }
 
     x = 0.0;
-    y = std::floor(m_viewRegion._minY / m_stepY) * m_stepY;
+    y = std::floor(m_viewRegion.minY / m_stepY) * m_stepY;
 
     for(int i = 0; i < m_numTicks; ++i)
     {

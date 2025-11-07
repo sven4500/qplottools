@@ -4,14 +4,12 @@ Widget::Widget(QWidget* parent)
     : QWidget(parent)
 {
     m_graph = new Graph2D<float>(this);
-    //m_graph->setLimX(-M_PI, M_PI * 2);
+    m_graph->setLimX(-M_PI, M_PI * 2);
+    m_graph->setLimY(-0.5, 1.5);
 
-    auto const id1 = addSine(m_graph, 200);
-    m_graph->setStyle(id1, Qt::DashLine);
-    m_graph->setWidth(id1, 2);
-
-    addCurve2(m_graph);
-    addCurve3(m_graph);
+    addSine1(m_graph);
+    addSine2(m_graph);
+    addSine3(m_graph);
 
     QGridLayout* const layout = new QGridLayout(this);
     layout->setMargin(0);
@@ -22,20 +20,24 @@ Widget::Widget(QWidget* parent)
     resize(640, 480);
 }
 
-int Widget::addSine(Graph2D<float> *graph, int points)
+int Widget::addSine1(Graph2D<float> *graph)
 {
-    QVector<float> y(points);
+    auto const numPoints = 10;
+    QVector<float> y(numPoints);
 
-    for(auto i = 0; i < points; ++i)
+    for(auto i = 0; i < numPoints; ++i)
     {
-        y[i] = std::sin((M_PI / points) * i);
+        y[i] = std::sin((M_PI / numPoints) * i);
     }
 
     auto const id = graph->addCurve(y, Qt::red);
+    graph->setStyle(id, Qt::DashLine);
+    graph->setWidth(id, 2);
+
     return id;
 }
 
-void Widget::addCurve2(Graph2D<float> *graph)
+int Widget::addSine2(Graph2D<float> *graph)
 {
     auto const numPoints = 200;
     QVector<float> x(numPoints), y(numPoints);
@@ -48,9 +50,11 @@ void Widget::addCurve2(Graph2D<float> *graph)
 
     auto const id = graph->addCurve(x, y);
     graph->setWidth(id, 3);
+
+    return id;
 }
 
-void Widget::addCurve3(Graph2D<float> *graph)
+int Widget::addSine3(Graph2D<float> *graph)
 {
     auto const numPoints = 200;
     QVector<QPointF> xy(numPoints);
@@ -63,4 +67,6 @@ void Widget::addCurve3(Graph2D<float> *graph)
 
     auto const id = graph->addCurve(xy, Qt::blue);
     graph->setColor(id, Qt::green);
+
+    return id;
 }

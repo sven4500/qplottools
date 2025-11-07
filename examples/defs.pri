@@ -14,13 +14,7 @@ UI_DIR = $$TMPDIR/$$TARGET
 #UI_SOURCES_DIR
 
 INCLUDEPATH += \
-    $$SRCDIR
+    $$SRCDIR \
 
 HEADERS += \
-    $$SRCDIR/abstractpainter.h \
-    $$SRCDIR/axes2d.h \
-    $$SRCDIR/axespolar.h \
-    $$SRCDIR/gradientmap.h \
-    $$SRCDIR/graph2d.h \
-    $$SRCDIR/graphpolar.h \
-    $$SRCDIR/voronoidiagram.h
+    $$SRCDIR/*.h \

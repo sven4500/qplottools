@@ -29,11 +29,11 @@ private:
      * \brief addSine
      * \param graph
      */
-    static int addSine(Graph2D<float>* graph, int points = 100);
+    static int addSine1(Graph2D<float>* graph);
 
-    static void addCurve2(Graph2D<float>* graph);
+    static int addSine2(Graph2D<float>* graph);
 
-    static void addCurve3(Graph2D<float>* graph);
+    static int addSine3(Graph2D<float>* graph);
 
     Graph2D<float>* m_graph;
 
